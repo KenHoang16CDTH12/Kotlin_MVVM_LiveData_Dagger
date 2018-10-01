@@ -1,0 +1,155 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-platform-android'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+apply from: '../autodimension.gradle'
+
+def APP_ID = "n.com.myapplication"
+
+android {
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
+
+  defaultConfig {
+    applicationId "${APP_ID}"
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
+    versionCode 1
+    versionName "1.0"
+    testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    vectorDrawables.useSupportLibrary = true
+  }
+
+  flavorDimensions "default"
+
+  productFlavors {
+    dev {
+      applicationIdSuffix = ".dev"
+      manifestPlaceholders = [applicationName: "@string/app_name"]
+    }
+
+    prod {
+      manifestPlaceholders = [applicationName: "@string/app_name"]
+    }
+  }
+
+  buildTypes {
+
+    debug {
+      buildConfigField "String", "BASE_URL", "\"https://api.github.com/\""
+    }
+
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    }
+  }
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+
+  dataBinding {
+    enabled = true
+  }
+
+  kapt {
+    generateStubs = true
+  }
+
+  kapt {
+    mapDiagnosticLocations = true
+  }
+
+  sourceSets {
+    main.java.srcDirs += 'src/main/kotlin'
+  }
+
+  configurations.all {
+    resolutionStrategy.force 'com.google.code.findbugs:jsr305:1.3.9'
+  }
+
+  lintOptions {
+    disable 'MissingTranslation'
+    check 'Interoperability'
+  }
+}
+
+dependencies {
+  implementation fileTree(dir: 'libs', include: ['*.jar'])
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+
+  implementation "com.android.support:appcompat-v7:$rootProject.supportLibraryVersion"
+  implementation "com.android.support:cardview-v7:$rootProject.supportLibraryVersion"
+  implementation "com.android.support:design:$rootProject.supportLibraryVersion"
+  implementation "com.android.support:recyclerview-v7:$rootProject.supportLibraryVersion"
+  implementation "com.android.support:support-v4:$rootProject.supportLibraryVersion"
+  implementation "com.android.support:percent:$rootProject.supportLibraryVersion"
+  implementation "com.android.support:support-annotations:$rootProject.supportLibraryVersion"
+
+  implementation 'com.google.android.material:material:1.0.0'
+
+  implementation "com.android.support.constraint:constraint-layout:$rootProject.constraintVersion"
+
+  implementation "android.arch.persistence.room:runtime:$rootProject.roomVersion"
+  implementation 'com.android.support:support-v4:28.0.0'
+  implementation 'com.android.support:appcompat-v7:28.0.0'
+  implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+  implementation 'com.android.support:design:28.0.0'
+  kapt "android.arch.persistence.room:compiler:$rootProject.roomVersion"
+
+  implementation "com.squareup.retrofit2:retrofit:$rootProject.retrofitVersion"
+  implementation "com.squareup.retrofit2:converter-gson:$rootProject.retrofitVersion"
+  implementation "com.squareup.retrofit2:adapter-rxjava2:$rootProject.retrofitVersion"
+
+  implementation "com.squareup.okhttp3:okhttp:$rootProject.okhttpVersion"
+  implementation "com.squareup.okhttp3:logging-interceptor:$rootProject.okhttpVersion"
+
+  implementation "io.reactivex.rxjava2:rxkotlin:$rootProject.rxKotlin"
+  implementation "io.reactivex.rxjava2:rxandroid:$rootProject.rxAndroid"
+  implementation "io.reactivex.rxjava2:rxjava:$rootProject.rxJava"
+
+  implementation "com.google.dagger:dagger:$rootProject.dagger"
+  implementation "com.google.dagger:dagger-android:$rootProject.dagger"
+  implementation "com.google.dagger:dagger-android-support:$rootProject.dagger"
+  kapt "com.google.dagger:dagger-compiler:$rootProject.dagger"
+  kapt "com.google.dagger:dagger-android-processor:$rootProject.dagger"
+
+  implementation "com.github.bumptech.glide:glide:$rootProject.glide"
+  kapt "com.github.bumptech.glide:compiler:$rootProject.glide"
+
+  implementation "org.greenrobot:eventbus:$rootProject.eventbus"
+
+  implementation "com.google.code.findbugs:jsr305:3.0.1"
+
+  implementation 'androidx.core:core-ktx:1.0.0'
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+  kapt "com.android.databinding:compiler:$gradlePluginVersion"
+
+  implementation 'com.squareup.leakcanary:leakcanary-android:1.5.4'
+
+  testImplementation 'junit:junit:4.12'
+  androidTestImplementation 'com.android.support.test:runner:1.0.2'
+  androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
+
+@SuppressWarnings("GroovyAssignabilityCheck")
+def appendVersionNameVersionCode(variant) {
+  variant.outputs.all { output ->
+    def applicationId = variant.mergedFlavor.applicationId + (variant.buildType.applicationIdSuffix ==
+        null ? "" : variant.buildType.applicationIdSuffix)
+    if (output.zipAlign) {
+      def outputFile = output.outputFile
+      if (outputFile != null && outputFile.name.endsWith('.apk')) {
+        def time = new Date().format("dd-MM-yyyy", TimeZone.getTimeZone("UTC"))
+        def fileName = outputFile.name.replace("app",
+            "${applicationId}_v${variant.versionName}_${variant.versionCode}_${time}")
+        outputFileName = fileName
+      }
+    }
+  }
+}
