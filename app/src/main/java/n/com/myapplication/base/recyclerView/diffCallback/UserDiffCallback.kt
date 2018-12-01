@@ -17,13 +17,14 @@ class UserDiffCallback
 
 
   override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-    return olds[oldItemPosition].id == news[newItemPosition].id
+    val oldItem: User? = olds[oldItemPosition]
+    val newItem: User? = news[newItemPosition]
+    return oldItem?.id == newItem?.id
   }
-
 
   override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-    return olds[oldItemPosition] == news[newItemPosition]
+    val oldItem: User? = olds[oldItemPosition]
+    val newItem: User? = news[newItemPosition]
+    return oldItem == newItem
   }
-
-
 }

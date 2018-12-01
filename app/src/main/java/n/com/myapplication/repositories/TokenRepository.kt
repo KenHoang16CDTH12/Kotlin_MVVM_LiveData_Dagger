@@ -8,7 +8,7 @@ import n.com.myapplication.extension.notNull
 class TokenRepository
 constructor(private val sharedPrefsApi: SharedPrefsApi) {
 
-  private var tokenCache: com.ccc.jobchat.data.model.Token? = null
+  private var tokenCache: Token? = null
 
   fun getToken(): Token? {
     tokenCache.notNull {

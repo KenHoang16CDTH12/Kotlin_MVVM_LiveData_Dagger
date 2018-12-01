@@ -1,6 +1,7 @@
 package n.com.myapplication.base.recyclerView
 
 import android.content.Context
+import android.os.Handler
 import android.view.LayoutInflater
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -21,6 +22,9 @@ constructor(
 
   protected var itemClickListener: OnItemClickListener<T>? = null
 
+  protected var handler = Handler()
+  protected lateinit var runnable: Runnable
+
   override fun getItemCount(): Int {
     return dataList.size
   }
@@ -29,26 +33,15 @@ constructor(
     return dataList
   }
 
-  fun addData(data: MutableList<T>?) {
-    data.notNull {
-      dataList.addAll(it)
-      notifyDataSetChanged()
+  fun updateData(newData: MutableList<T>?, diffResult: DiffUtil.DiffResult) {
+    runnable = Runnable {
+      newData.notNull { it ->
+        diffResult.dispatchUpdatesTo(this)
+        dataList.clear()
+        dataList.addAll(it)
+      }
     }
-  }
-
-  fun addData(newData: MutableList<T>?, diffResult: DiffUtil.DiffResult) {
-    newData.notNull { it ->
-      diffResult.dispatchUpdatesTo(this)
-      dataList.clear()
-      dataList.addAll(it)
-    }
-  }
-
-  fun updateData(data: MutableList<T>?) {
-    data.notNull {
-      dataList = it
-      notifyDataSetChanged()
-    }
+    handler.post(runnable)
   }
 
   fun clearData() {
@@ -57,7 +50,6 @@ constructor(
       notifyDataSetChanged()
     }
   }
-
 
   fun getItem(position: Int): T? {
     return if (position < 0 || position >= dataList.size) {
@@ -94,5 +86,10 @@ constructor(
     itemClickListener = null
   }
 
+  fun onClearCallBackLoadMore() {
+    handler.notNull {
+      handler.removeCallbacks(runnable)
+    }
+  }
 
 }

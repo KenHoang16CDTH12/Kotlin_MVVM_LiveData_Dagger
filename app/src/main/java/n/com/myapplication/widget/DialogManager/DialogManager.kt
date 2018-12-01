@@ -2,9 +2,11 @@ package n.com.myapplication.widget.DialogManager
 
 interface DialogManager {
 
-  fun showProgressDialog()
+  fun showLoading()
 
-  fun hideProgressDialog()
+  fun showProcessing()
+
+  fun hideLoading()
 
   fun onRelease()
 }

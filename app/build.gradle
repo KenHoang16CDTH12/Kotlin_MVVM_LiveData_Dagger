@@ -23,27 +23,41 @@ android {
     vectorDrawables.useSupportLibrary = true
   }
 
-  flavorDimensions "default"
+  flavorDimensions "stage", "mode"
 
   productFlavors {
     dev {
+      dimension "stage"
+
       applicationIdSuffix = ".dev"
       manifestPlaceholders = [applicationName: "@string/app_name"]
+      applicationVariants.all { variant -> appendVersionNameVersionCode(variant) }
+
+      minSdkVersion rootProject.ext.minSdkVersion
+      versionNameSuffix "-dev"
+      applicationIdSuffix '.dev'
+      resConfigs "en", "xxhdpi"
     }
 
     prod {
+      dimension "mode"
+
       manifestPlaceholders = [applicationName: "@string/app_name"]
+      applicationVariants.all { variant -> appendVersionNameVersionCode(variant) }
     }
   }
 
   buildTypes {
 
     debug {
+      ext.enableCrashlytics = false
       buildConfigField "String", "BASE_URL", "\"https://api.github.com/\""
     }
 
     release {
-      minifyEnabled false
+      minifyEnabled true
+      shrinkResources true
+
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
     }
   }
@@ -59,6 +73,10 @@ android {
 
   kapt {
     generateStubs = true
+  }
+
+  kapt {
+    useBuildCache = true
   }
 
   kapt {
@@ -92,14 +110,9 @@ dependencies {
   implementation "com.android.support:support-annotations:$rootProject.supportLibraryVersion"
 
   implementation 'com.google.android.material:material:1.0.0'
-
   implementation "com.android.support.constraint:constraint-layout:$rootProject.constraintVersion"
 
   implementation "android.arch.persistence.room:runtime:$rootProject.roomVersion"
-  implementation 'com.android.support:support-v4:28.0.0'
-  implementation 'com.android.support:appcompat-v7:28.0.0'
-  implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-  implementation 'com.android.support:design:28.0.0'
   kapt "android.arch.persistence.room:compiler:$rootProject.roomVersion"
 
   implementation "com.squareup.retrofit2:retrofit:$rootProject.retrofitVersion"
@@ -126,7 +139,7 @@ dependencies {
 
   implementation "com.google.code.findbugs:jsr305:3.0.1"
 
-  implementation 'androidx.core:core-ktx:1.0.0'
+  implementation 'androidx.core:core-ktx:1.0.1'
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
   kapt "com.android.databinding:compiler:$gradlePluginVersion"
 

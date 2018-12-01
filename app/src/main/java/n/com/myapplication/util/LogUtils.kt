@@ -7,7 +7,6 @@ object LogUtils {
 
   private val DEBUG = BuildConfig.DEBUG
 
-
   fun d(tag: String, message: String) {
     if (DEBUG) {
       Log.d(tag, message)

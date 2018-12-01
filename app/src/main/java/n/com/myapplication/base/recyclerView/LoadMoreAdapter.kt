@@ -1,26 +1,22 @@
 package n.com.myapplication.base.recyclerView
 
 import android.content.Context
-import android.os.Handler
 import android.view.ViewGroup
 import androidx.annotation.NonNull
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import n.com.myapplication.R
 import n.com.myapplication.databinding.ItemLoadMoreBinding
-import n.com.myapplication.extension.notNull
 
 abstract class LoadMoreAdapter<T>
 constructor(context: Context) : BaseRecyclerViewAdapter<T, RecyclerView.ViewHolder>(context) {
 
   companion object {
     const val TYPE_PROGRESS = 0xFFFF
+    const val TAG = "LoadMoreAdapter"
   }
 
   private var isLoadMore = false
-
-  private var handler = Handler()
-  private lateinit var runnable: Runnable
 
   @NonNull
   override fun getItemViewType(position: Int): Int {
@@ -33,10 +29,8 @@ constructor(context: Context) : BaseRecyclerViewAdapter<T, RecyclerView.ViewHold
   @NonNull
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
     if (TYPE_PROGRESS == viewType) {
-      val bottomBinding = DataBindingUtil.inflate<ItemLoadMoreBinding>(layoutInflater,
-          R.layout.item_load_more,
-          parent,
-          false
+      val bottomBinding = DataBindingUtil.inflate<ItemLoadMoreBinding>(
+          layoutInflater, R.layout.item_load_more, parent, false
       )
       return ItemLoadMoreViewHolder(bottomBinding)
     }
@@ -49,45 +43,40 @@ constructor(context: Context) : BaseRecyclerViewAdapter<T, RecyclerView.ViewHold
       (holder as ItemLoadMoreViewHolder).bind(isLoadMore)
       return
     }
-
-    if (position < 0 || position >= dataList.size) {
-      return
-    }
-
     onBindViewHolderLM(holder, position)
   }
 
-  private fun bottomItemPosition(): Int {
+  fun bottomItemPosition(): Int {
     return itemCount - 1
   }
 
   fun onStartLoadMore() {
-    if (dataList.isEmpty() || isLoadMore) {
-      return
-    }
-
-    isLoadMore = true
-
     runnable = Runnable {
-      notifyItemChanged(bottomItemPosition())
+      if (dataList.isEmpty() || isLoadMore) {
+        return@Runnable
+      }
+      isLoadMore = true
+      val position = dataList.size
+      dataList.add(position, null as T)
+      notifyItemInserted(position)
     }
     handler.post(runnable)
   }
 
   fun onStopLoadMore() {
-    if (dataList.isEmpty() || !isLoadMore) {
-      return
-    }
-
-    isLoadMore = false
-
     runnable = Runnable {
-      notifyItemChanged(bottomItemPosition())
+      if (!isLoadMore) {
+        return@Runnable
+      }
+      isLoadMore = false
+      val position = dataList.size
+      dataList.removeAt(position - 1)
+      notifyItemRemoved(position)
     }
     handler.post(runnable)
   }
 
-  data class ItemLoadMoreViewHolder(
+  class ItemLoadMoreViewHolder(
       private val binding: ItemLoadMoreBinding,
       private val itemViewModel: ItemLoadMoreViewModel = ItemLoadMoreViewModel()) : RecyclerView.ViewHolder(
       binding.root) {
@@ -109,11 +98,4 @@ constructor(context: Context) : BaseRecyclerViewAdapter<T, RecyclerView.ViewHold
   protected abstract fun onBindViewHolderLM(holder: RecyclerView.ViewHolder, position: Int)
 
   protected abstract fun getItemViewTypeLM(position: Int): Int
-
-  fun onClearCallBackLoadMore() {
-    handler.notNull {
-      handler.removeCallbacks(runnable)
-    }
-  }
-
 }
