@@ -9,7 +9,6 @@ import n.com.myapplication.data.source.RepositoryModule
 import n.com.myapplication.data.source.remote.service.NetWorkModule
 import javax.inject.Singleton
 
-
 @Singleton
 @Component(
     modules = [

@@ -75,7 +75,7 @@ class UserFragment : BaseFragment(), OnItemClickListener<User> {
 
   override fun bindView() {
     viewModel.isLoading.observe(this, Observer { isLoading ->
-      if (isLoading) showLoading() else hideLoading()
+      if (isLoading) dialogManager?.showLoading() else dialogManager?.hideLoading()
     })
 
     viewModel.isLoadMore.observe(this, Observer { isLoadMore ->
@@ -84,7 +84,7 @@ class UserFragment : BaseFragment(), OnItemClickListener<User> {
 
     viewModel.isRefresh.observe(this, Observer { isRefresh ->
       swipeLayout.isRefreshing = isRefresh
-      if (isRefresh) showLoading() else hideLoading()
+      if (isRefresh) dialogManager?.showLoading() else dialogManager?.hideLoading()
     })
 
     viewModel.isError.observe(this, Observer { isError ->
@@ -93,7 +93,7 @@ class UserFragment : BaseFragment(), OnItemClickListener<User> {
 
     viewModel.repoList.observe(this, Observer { newData ->
       val diffResult = DiffUtil.calculateDiff(UserDiffCallback(adapter.getData(), newData))
-      adapter.addData(newData = newData, diffResult = diffResult)
+      adapter.updateData(newData = newData, diffResult = diffResult)
     })
   }
 

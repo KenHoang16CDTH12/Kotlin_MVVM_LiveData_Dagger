@@ -7,13 +7,15 @@ import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasActivityInjector
 import n.com.myapplication.di.AppInjector
 import n.com.myapplication.util.GlideApp
+import n.com.myapplication.util.LogUtils
 import javax.inject.Inject
-
 
 class MainApplication : Application(), HasActivityInjector {
 
   @Inject
   lateinit var dispatchingAndroidInjector: DispatchingAndroidInjector<Activity>
+
+  private var currentClass: Class<*>? = null
 
   override fun onCreate() {
     super.onCreate()
@@ -44,6 +46,15 @@ class MainApplication : Application(), HasActivityInjector {
       }
       LeakCanary.install(this)
     }
+  }
+
+  fun setCurrentClass(clazz: Class<out Activity>) {
+    currentClass = clazz
+    LogUtils.d("CurrentClass: ", clazz.javaClass.simpleName)
+  }
+
+  fun getCurrentClass(): Class<*>? {
+    return currentClass
   }
 
   companion object {

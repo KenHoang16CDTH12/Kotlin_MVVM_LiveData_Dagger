@@ -1,34 +1,40 @@
 package n.com.myapplication.widget.DialogManager
 
 import android.content.Context
-import n.com.myapplication.extension.isNull
-import n.com.myapplication.extension.notNull
+import n.com.myapplication.util.Constant
+import n.com.myapplication.util.LogUtils
 import java.lang.ref.WeakReference
 
-class DialogManagerImpl(context: Context) : DialogManager {
+class DialogManagerImpl(ctx: Context?) : DialogManager {
 
-  private var context: WeakReference<Context> = WeakReference(context)
-
+  private var context: WeakReference<Context?>? = null
   private var progressDialog: ProgressDialog? = null
 
-  override fun showProgressDialog() {
-    progressDialog.isNull {
-      progressDialog = ProgressDialog(context.get())
+  init {
+    context = WeakReference(ctx).apply {
+      progressDialog = ProgressDialog(this.get()!!)
     }
+  }
+
+  override fun showLoading() {
     progressDialog?.show()
   }
 
-  override fun hideProgressDialog() {
-    progressDialog.isNull {
-      progressDialog = ProgressDialog(context.get())
-    }
+  override fun showProcessing() {
+    progressDialog?.show()
+  }
+
+  override fun hideLoading() {
     progressDialog?.dismiss()
   }
 
   override fun onRelease() {
-    progressDialog.notNull {
-      progressDialog = null
-    }
+    progressDialog = null
+    LogUtils.d(TAG, Constant.RELEASED)
+  }
+
+  companion object {
+    const val TAG = "DialogManagerImpl"
   }
 
 }

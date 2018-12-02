@@ -8,8 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.support.HasSupportFragmentInjector
-import n.com.myapplication.extension.isNull
-import n.com.myapplication.extension.notNull
+import n.com.myapplication.MainApplication
 import n.com.myapplication.widget.DialogManager.DialogManager
 import n.com.myapplication.widget.DialogManager.DialogManagerImpl
 import javax.inject.Inject
@@ -22,9 +21,7 @@ abstract class BaseActivity : AppCompatActivity(), HasSupportFragmentInjector {
   @Inject
   lateinit var dispatchingAndroidInjector: DispatchingAndroidInjector<Fragment>
 
-  private val lockObj = Any()
-
-  private var dialogManager: DialogManager? = null
+  var dialogManager: DialogManager? = null
 
   override fun supportFragmentInjector(): AndroidInjector<Fragment> {
     return dispatchingAndroidInjector
@@ -32,46 +29,21 @@ abstract class BaseActivity : AppCompatActivity(), HasSupportFragmentInjector {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    dialogManager = DialogManagerImpl(this)
     onCreateView(savedInstanceState)
     setUpView()
     bindView()
   }
 
+  override fun onStart() {
+    super.onStart()
+    MainApplication.sInstance.setCurrentClass(javaClass)
+  }
+
   override fun onDestroy() {
-    dialogManager.notNull {
-      dialogManager?.onRelease()
-      dialogManager = null
-    }
     super.onDestroy()
-  }
-
-
-  fun showLoading() {
-    dialogManager.isNull {
-      dialogManager = DialogManagerImpl(this)
-    }
-    runOnUiThread {
-      synchronized(lockObj) {
-        if (isFinishing) {
-          return@runOnUiThread
-        }
-        dialogManager?.showProgressDialog()
-      }
-    }
-  }
-
-  fun hideLoading() {
-    dialogManager.isNull {
-      dialogManager = DialogManagerImpl(this)
-    }
-    runOnUiThread {
-      synchronized(lockObj) {
-        if (isFinishing) {
-          return@runOnUiThread
-        }
-        dialogManager?.hideProgressDialog()
-      }
-    }
+    dialogManager?.onRelease()
+    dialogManager = null
   }
 
   protected abstract fun onCreateView(savedInstanceState: Bundle?)

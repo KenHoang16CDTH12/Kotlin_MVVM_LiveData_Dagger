@@ -1,5 +1,6 @@
 package n.com.myapplication.base
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,12 +10,24 @@ import androidx.annotation.Nullable
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import n.com.myapplication.di.Injectable
+import n.com.myapplication.widget.DialogManager.DialogManager
+import n.com.myapplication.widget.DialogManager.DialogManagerImpl
 import javax.inject.Inject
 
 abstract class BaseFragment : Fragment(), Injectable {
   @Inject
   lateinit var viewModelFactory: ViewModelProvider.Factory
 
+  var dialogManager: DialogManager? = null
+
+  override fun onAttach(context: Context?) {
+    super.onAttach(context)
+    dialogManager = if (activity is BaseActivity) {
+      (activity as BaseActivity).dialogManager
+    } else {
+      DialogManagerImpl(getContext())
+    }
+  }
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
       savedInstanceState: Bundle?): View? {
@@ -25,18 +38,6 @@ abstract class BaseFragment : Fragment(), Injectable {
     super.onViewCreated(view, savedInstanceState)
     setUpView()
     bindView()
-  }
-
-  fun showLoading() {
-    if (activity is BaseActivity) {
-      (activity as BaseActivity).showLoading()
-    }
-  }
-
-  fun hideLoading() {
-    if (activity is BaseActivity) {
-      (activity as BaseActivity).hideLoading()
-    }
   }
 
   protected abstract fun createView(@NonNull inflater: LayoutInflater,

@@ -8,4 +8,5 @@ object Constant {
 
   const val PAGE_DEFAULT = 1
 
+  const val RELEASED = "RELEASED"
 }
