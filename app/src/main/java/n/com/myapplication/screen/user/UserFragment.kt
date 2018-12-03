@@ -49,13 +49,17 @@ class UserFragment : BaseFragment(), OnItemClickListener<User>, SuperRecyclerVie
 
     edtSearch.setOnEditorActionListener { _, actionId, _ ->
       if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-        onRefreshData()
+        recyclerView.resetState()
+        viewModel.searchUser(Status.REFRESH_DATA)
         return@setOnEditorActionListener true
       }
       return@setOnEditorActionListener false
     }
 
     viewModel.initRxSearch(editText = edtSearch)
+
+    viewModel.query.value = "cat"
+    viewModel.searchUser(Status.LOADING)
   }
 
   override fun bindView() {
@@ -64,25 +68,33 @@ class UserFragment : BaseFragment(), OnItemClickListener<User>, SuperRecyclerVie
       when (resource.status) {
         Status.SUCCESS -> {
           dialogManager?.hideLoading()
-          updateData(data)
+          data.notNull { updateData(it) }
         }
         Status.LOADING -> {
           dialogManager?.hideLoading()
-          updateData(data)
+          data.notNull { updateData(it) }
+        }
+        Status.SEARCH_DATA -> {
+          data.notNull {
+            recyclerView.refreshAdapter(newSize = it.size)
+            updateData(it)
+          }
         }
         Status.REFRESH_DATA -> {
-          recyclerView.stopRefreshData()
-          updateData(data)
+          data.notNull {
+            recyclerView.stopRefreshData()
+            recyclerView.refreshAdapter(newSize = it.size)
+            updateData(it)
+          }
         }
         Status.LOAD_MORE -> {
-          data?.notNull {
+          data.notNull {
             recyclerView.stopLoadMore(newSize = it.size)
             updateData(it)
           }
         }
         Status.ERROR -> {
-          recyclerView.stopRefreshData()
-          recyclerView.stopLoadMore()
+          recyclerView.stopAllStatusLoadData()
           resource.error?.getMessageError().notNull { activity?.showToast(it) }
         }
       }
@@ -94,19 +106,17 @@ class UserFragment : BaseFragment(), OnItemClickListener<User>, SuperRecyclerVie
   }
 
   override fun onLoadMore(page: Int) {
-    viewModel.searchUser(Status.LOAD_MORE)
+    viewModel.searchUser(Status.LOAD_MORE, page = page)
   }
 
   override fun onRefreshData() {
     viewModel.searchUser(Status.REFRESH_DATA)
   }
 
-  private fun updateData(newData: MutableList<User>?) {
-    newData.notNull {
-      val callBack = UserDiffCallback(adapter.getData(), it)
-      val diffResult = DiffUtil.calculateDiff(callBack)
-      adapter.updateData(newData = it, diffResult = diffResult)
-    }
+  private fun updateData(newData: MutableList<User>) {
+    val callBack = UserDiffCallback(adapter.getData(), newData)
+    val diffResult = DiffUtil.calculateDiff(callBack)
+    adapter.updateData(newData = newData, diffResult = diffResult)
   }
 
   companion object {

@@ -97,10 +97,6 @@ class SuperRecyclerView : FrameLayout {
     isRefresh = true
     currentPage = Constant.PAGE_DEFAULT
 
-    loadMoreAdapter?.isLoadMore = false
-    loadMoreAdapter?.clearData()
-    resetState()
-
     swipeRefreshLayout?.setRefreshing(true)
     loadDataListener?.onRefreshData()
   }
@@ -129,9 +125,20 @@ class SuperRecyclerView : FrameLayout {
     }
   }
 
-  fun stopLoadData() {
-    stopRefreshData()
+  fun stopAllStatusLoadData() {
+    swipeRefreshLayout?.setRefreshing(false)
     stopLoadMore()
+  }
+
+  fun refreshAdapter(newSize: Int = 0) {
+    loadMoreAdapter.notNull { adapter ->
+      adapter.isLoadMore = false
+      adapter.getData().clear()
+      if (newSize == 0) {
+        adapter.notifyDataSetChanged()
+      }
+      resetState()
+    }
   }
 
   fun disableAnimateRecyclerView() {

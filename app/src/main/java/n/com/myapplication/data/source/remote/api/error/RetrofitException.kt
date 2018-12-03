@@ -7,7 +7,7 @@ import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
-class BaseException : RuntimeException {
+class RetrofitException : RuntimeException {
 
   private val errorType: String
   private lateinit var response: Response<*>
@@ -83,20 +83,20 @@ class BaseException : RuntimeException {
 
   companion object {
 
-    fun toNetworkError(cause: Throwable): BaseException {
-      return BaseException(Type.NETWORK, cause)
+    fun toNetworkError(cause: Throwable): RetrofitException {
+      return RetrofitException(Type.NETWORK, cause)
     }
 
-    fun toHttpError(response: Response<*>): BaseException {
-      return BaseException(Type.HTTP, response)
+    fun toHttpError(response: Response<*>): RetrofitException {
+      return RetrofitException(Type.HTTP, response)
     }
 
-    fun toUnexpectedError(cause: Throwable): BaseException {
-      return BaseException(Type.UNEXPECTED, cause)
+    fun toUnexpectedError(cause: Throwable): RetrofitException {
+      return RetrofitException(Type.UNEXPECTED, cause)
     }
 
-    fun toServerError(response: ErrorResponse): BaseException {
-      return BaseException(Type.SERVER, response)
+    fun toServerError(response: ErrorResponse): RetrofitException {
+      return RetrofitException(Type.SERVER, response)
     }
   }
 }
