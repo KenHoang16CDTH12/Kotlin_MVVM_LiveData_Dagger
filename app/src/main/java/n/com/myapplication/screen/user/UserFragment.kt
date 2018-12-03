@@ -16,6 +16,7 @@ import n.com.myapplication.base.recyclerView.OnItemClickListener
 import n.com.myapplication.base.recyclerView.diffCallback.UserDiffCallback
 import n.com.myapplication.data.model.User
 import n.com.myapplication.databinding.FragmentUserBinding
+import n.com.myapplication.extension.isNull
 import n.com.myapplication.extension.notNull
 import n.com.myapplication.extension.showToast
 import n.com.myapplication.liveData.Status
@@ -30,6 +31,12 @@ class UserFragment : BaseFragment(), OnItemClickListener<User>, SuperRecyclerVie
   private var binding by autoCleared<FragmentUserBinding>()
   private var adapter by autoCleared<UserAdapter>()
 
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    adapter = UserAdapter(context = context!!)
+    adapter.registerItemClickListener(this)
+  }
+
   override fun createView(inflater: LayoutInflater, container: ViewGroup?,
       savedInstanceState: Bundle?): View {
     viewModel = UserViewModel.create(this, viewModelFactory)
@@ -40,16 +47,12 @@ class UserFragment : BaseFragment(), OnItemClickListener<User>, SuperRecyclerVie
   }
 
   override fun setUpView() {
-    adapter = UserAdapter(context = context!!)
-    adapter.registerItemClickListener(this)
-
     recyclerView.setAdapter(adapter)
     recyclerView.setLayoutManager(LinearLayoutManager(context?.applicationContext))
     recyclerView.setLoadDataListener(this)
 
     edtSearch.setOnEditorActionListener { _, actionId, _ ->
       if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-        recyclerView.resetState()
         viewModel.searchUser(Status.REFRESH_DATA)
         return@setOnEditorActionListener true
       }
@@ -58,8 +61,10 @@ class UserFragment : BaseFragment(), OnItemClickListener<User>, SuperRecyclerVie
 
     viewModel.initRxSearch(editText = edtSearch)
 
-    viewModel.query.value = "cat"
-    viewModel.searchUser(Status.LOADING)
+    viewModel.repoList.value?.data.isNull {
+      viewModel.query.value = "cat"
+      viewModel.searchUser(Status.LOADING)
+    }
   }
 
   override fun bindView() {
@@ -99,6 +104,11 @@ class UserFragment : BaseFragment(), OnItemClickListener<User>, SuperRecyclerVie
         }
       }
     })
+  }
+
+  override fun onStop() {
+    super.onStop()
+    recyclerView.stopAllStatusLoadData()
   }
 
   override fun onItemViewClick(item: User, position: Int) {
