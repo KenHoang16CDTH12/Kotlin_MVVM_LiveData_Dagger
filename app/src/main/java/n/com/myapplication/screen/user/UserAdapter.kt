@@ -40,8 +40,8 @@ class UserAdapter(context: Context) : LoadMoreAdapter<User>(context) {
     }
 
     fun bind(user: User?, position: Int) {
-      itemViewModel.setData(user)
       itemViewModel.position = position
+      itemViewModel.setData(user)
       binding.executePendingBindings()
     }
   }

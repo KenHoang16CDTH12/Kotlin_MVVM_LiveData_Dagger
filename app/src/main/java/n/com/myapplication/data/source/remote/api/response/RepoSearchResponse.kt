@@ -31,7 +31,7 @@ data class RepoSearchResponse(
     val total: Int = 0,
     @Expose
     @field:SerializedName("items")
-    val items: List<User>
+    val items: MutableList<User>
 ) {
   var nextPage: Int? = null
 }

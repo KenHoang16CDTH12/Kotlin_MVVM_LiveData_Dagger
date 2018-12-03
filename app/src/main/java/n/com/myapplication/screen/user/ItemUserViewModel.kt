@@ -11,14 +11,19 @@ import n.com.myapplication.util.Constant.POSITION_DEFAULT
 
 data class ItemUserViewModel(
     val itemClickListener: OnItemClickListener<User>? = null,
-    var position: Int = POSITION_DEFAULT,
-    @Bindable
-    var user: User? = null) : BaseObservable() {
+    var position: Int = POSITION_DEFAULT) : BaseObservable() {
+
+  @Bindable
+  var name = ""
+  @Bindable
+  var user: User? = null
 
   fun setData(data: User?) {
     data.notNull {
       user = it
       notifyPropertyChanged(BR.user)
+      name = position.toString() + " : " + it.fullName
+      notifyPropertyChanged(BR.name)
     }
   }
 
