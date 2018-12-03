@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.SimpleItemAnimator
 import n.com.myapplication.R
 import n.com.myapplication.base.recyclerView.EndlessRecyclerOnScrollListener
 import n.com.myapplication.base.recyclerView.LoadMoreAdapter
+import n.com.myapplication.extension.notNull
 import n.com.myapplication.util.Constant
 import n.com.myapplication.util.LogUtils
 import n.com.myapplication.widget.pullToRefresh.PullRefreshLayout
@@ -25,7 +26,6 @@ class SuperRecyclerView : FrameLayout {
   private var swipeRefreshLayout: PullRefreshLayout? = null
   private var loadMoreAdapter: LoadMoreAdapter<*>? = null
 
-  private var isLoadMore = false
   private var isRefresh = false
   private var currentPage = Constant.PAGE_DEFAULT
 
@@ -64,9 +64,9 @@ class SuperRecyclerView : FrameLayout {
       val spanSize = layoutManager.spanCount
       layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
         override fun getSpanSize(position: Int): Int {
-          return if (isLoadMore
+          return if (loadMoreAdapter?.isLoadMore == true
               && loadMoreAdapter != null
-              && position == loadMoreAdapter!!.bottomItemPosition()) {
+              && position == loadMoreAdapter?.bottomItemPosition()) {
             spanSize
           } else 1
         }
@@ -94,37 +94,39 @@ class SuperRecyclerView : FrameLayout {
   }
 
   fun startRefreshData() {
-    stopLoadMore()
-    currentPage = Constant.PAGE_DEFAULT
     isRefresh = true
+    currentPage = Constant.PAGE_DEFAULT
+
+    loadMoreAdapter?.isLoadMore = false
+    loadMoreAdapter?.clearData()
+    resetState()
+
     swipeRefreshLayout?.setRefreshing(true)
     loadDataListener?.onRefreshData()
   }
 
   fun stopRefreshData() {
-    if (!isRefresh) {
-      return
-    }
+    if (!isRefresh) return
     isRefresh = false
     swipeRefreshLayout?.setRefreshing(false)
   }
 
   fun startLoadMore() {
-    if (isLoadMore || isRefresh) {
-      return
+    loadMoreAdapter.notNull { adapter ->
+      if (adapter.isLoadMore || isRefresh) {
+        return
+      }
+      currentPage++
+      adapter.onStartLoadMore()
+      loadDataListener?.onLoadMore(currentPage)
     }
-    currentPage++
-    isLoadMore = true
-    loadMoreAdapter?.onStartLoadMore()
-    loadDataListener?.onLoadMore(currentPage)
   }
 
-  fun stopLoadMore() {
-    if (!isLoadMore) {
-      return
+  fun stopLoadMore(newSize: Int = 0) {
+    loadMoreAdapter.notNull { adapter ->
+      val oldSize = adapter.itemCount
+      adapter.onStopLoadMore(isNotify = newSize <= oldSize)
     }
-    isLoadMore = false
-    loadMoreAdapter?.onStopLoadMore()
   }
 
   fun stopLoadData() {

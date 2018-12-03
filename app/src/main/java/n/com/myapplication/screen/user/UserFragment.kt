@@ -12,20 +12,20 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.fragment_user.*
 import n.com.myapplication.R
 import n.com.myapplication.base.BaseFragment
-import n.com.myapplication.base.recyclerView.EndlessRecyclerOnScrollListener
 import n.com.myapplication.base.recyclerView.OnItemClickListener
 import n.com.myapplication.base.recyclerView.diffCallback.UserDiffCallback
 import n.com.myapplication.data.model.User
 import n.com.myapplication.databinding.FragmentUserBinding
 import n.com.myapplication.extension.notNull
 import n.com.myapplication.extension.showToast
+import n.com.myapplication.liveData.Status
 import n.com.myapplication.liveData.autoCleared
+import n.com.myapplication.widget.superRecyclerView.SuperRecyclerView
 
 
-class UserFragment : BaseFragment(), OnItemClickListener<User> {
+class UserFragment : BaseFragment(), OnItemClickListener<User>, SuperRecyclerView.LoadDataListener {
 
   private lateinit var viewModel: UserViewModel
-  private lateinit var scrollListener: EndlessRecyclerOnScrollListener
 
   private var binding by autoCleared<FragmentUserBinding>()
   private var adapter by autoCleared<UserAdapter>()
@@ -35,6 +35,7 @@ class UserFragment : BaseFragment(), OnItemClickListener<User> {
     viewModel = UserViewModel.create(this, viewModelFactory)
     binding = DataBindingUtil.inflate(inflater, R.layout.fragment_user, container, false)
     binding.viewModel = viewModel
+    binding.setLifecycleOwner(this)
     return binding.root
   }
 
@@ -42,29 +43,13 @@ class UserFragment : BaseFragment(), OnItemClickListener<User> {
     adapter = UserAdapter(context = context!!)
     adapter.registerItemClickListener(this)
 
-    val layoutManager = LinearLayoutManager(context?.applicationContext)
-    scrollListener = object : EndlessRecyclerOnScrollListener(layoutManager) {
-      override fun onLoadMore(currentPage: Int) {
-        viewModel.searchUser(isLoadMore = true)
-      }
-    }
-    recyclerView.adapter = adapter
-    recyclerView.layoutManager = layoutManager
-    recyclerView.hasFixedSize()
-    recyclerView.addOnScrollListener(scrollListener)
-
-    swipeLayout.setColorSchemeColors(resources.getColor(R.color.colorAccent))
-    swipeLayout.setOnRefreshListener {
-      adapter.clearData()
-      scrollListener.reset()
-      viewModel.searchUser(isRefresh = true)
-    }
+    recyclerView.setAdapter(adapter)
+    recyclerView.setLayoutManager(LinearLayoutManager(context?.applicationContext))
+    recyclerView.setLoadDataListener(this)
 
     edtSearch.setOnEditorActionListener { _, actionId, _ ->
       if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-        adapter.clearData()
-        scrollListener.reset()
-        viewModel.searchUser(isLoading = true)
+        onRefreshData()
         return@setOnEditorActionListener true
       }
       return@setOnEditorActionListener false
@@ -74,40 +59,55 @@ class UserFragment : BaseFragment(), OnItemClickListener<User> {
   }
 
   override fun bindView() {
-    viewModel.isLoading.observe(this, Observer { isLoading ->
-      if (isLoading) dialogManager?.showLoading() else dialogManager?.hideLoading()
-    })
-
-    viewModel.isLoadMore.observe(this, Observer { isLoadMore ->
-      if (isLoadMore) adapter.onStartLoadMore() else adapter.onStopLoadMore()
-    })
-
-    viewModel.isRefresh.observe(this, Observer { isRefresh ->
-      swipeLayout.isRefreshing = isRefresh
-      if (isRefresh) dialogManager?.showLoading() else dialogManager?.hideLoading()
-    })
-
-    viewModel.isError.observe(this, Observer { isError ->
-      isError.getMessageError().notNull { activity?.showToast(it) }
-    })
-
-    viewModel.repoList.observe(this, Observer { newData ->
-      val diffResult = DiffUtil.calculateDiff(UserDiffCallback(adapter.getData(), newData))
-      adapter.updateData(newData = newData, diffResult = diffResult)
+    viewModel.repoList.observe(this, Observer { resource ->
+      val data = resource.data
+      when (resource.status) {
+        Status.SUCCESS -> {
+          dialogManager?.hideLoading()
+          updateData(data)
+        }
+        Status.LOADING -> {
+          dialogManager?.hideLoading()
+          updateData(data)
+        }
+        Status.REFRESH_DATA -> {
+          recyclerView.stopRefreshData()
+          updateData(data)
+        }
+        Status.LOAD_MORE -> {
+          data?.notNull {
+            recyclerView.stopLoadMore(newSize = it.size)
+            updateData(it)
+          }
+        }
+        Status.ERROR -> {
+          recyclerView.stopRefreshData()
+          recyclerView.stopLoadMore()
+          resource.error?.getMessageError().notNull { activity?.showToast(it) }
+        }
+      }
     })
   }
-
-  override fun onDestroy() {
-    super.onDestroy()
-    recyclerView.removeOnScrollListener(scrollListener)
-    swipeLayout.setOnRefreshListener(null)
-  }
-
 
   override fun onItemViewClick(item: User, position: Int) {
     activity?.showToast(item.fullName + "")
   }
 
+  override fun onLoadMore(page: Int) {
+    viewModel.searchUser(Status.LOAD_MORE)
+  }
+
+  override fun onRefreshData() {
+    viewModel.searchUser(Status.REFRESH_DATA)
+  }
+
+  private fun updateData(newData: MutableList<User>?) {
+    newData.notNull {
+      val callBack = UserDiffCallback(adapter.getData(), it)
+      val diffResult = DiffUtil.calculateDiff(callBack)
+      adapter.updateData(newData = it, diffResult = diffResult)
+    }
+  }
 
   companion object {
     fun newInstance() = UserFragment()

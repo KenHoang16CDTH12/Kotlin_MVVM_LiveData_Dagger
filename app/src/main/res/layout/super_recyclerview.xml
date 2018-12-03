@@ -9,13 +9,12 @@
         android:id="@+id/swipe_refresh_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:refreshType="smartisan"
+        app:refreshType="material"
         >
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/super_recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@android:color/white"
             android:clipToPadding="false"
             />
     </n.com.myapplication.widget.pullToRefresh.PullRefreshLayout>

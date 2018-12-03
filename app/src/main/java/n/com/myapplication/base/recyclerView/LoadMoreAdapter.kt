@@ -16,7 +16,7 @@ constructor(context: Context) : BaseRecyclerViewAdapter<T, RecyclerView.ViewHold
     const val TAG = "LoadMoreAdapter"
   }
 
-  private var isLoadMore = false
+  var isLoadMore = false
 
   @NonNull
   override fun getItemViewType(position: Int): Int {
@@ -51,11 +51,10 @@ constructor(context: Context) : BaseRecyclerViewAdapter<T, RecyclerView.ViewHold
   }
 
   fun onStartLoadMore() {
+    if (dataList.isEmpty() || isLoadMore) return
+    isLoadMore = true
+
     runnable = Runnable {
-      if (dataList.isEmpty() || isLoadMore) {
-        return@Runnable
-      }
-      isLoadMore = true
       val position = dataList.size
       dataList.add(position, null as T)
       notifyItemInserted(position)
@@ -63,15 +62,16 @@ constructor(context: Context) : BaseRecyclerViewAdapter<T, RecyclerView.ViewHold
     handler.post(runnable)
   }
 
-  fun onStopLoadMore() {
+  fun onStopLoadMore(isNotify: Boolean = false) {
+    if (!isLoadMore) return
+    isLoadMore = false
+
     runnable = Runnable {
-      if (!isLoadMore) {
-        return@Runnable
-      }
-      isLoadMore = false
       val position = dataList.size
       dataList.removeAt(position - 1)
-      notifyItemRemoved(position)
+      if (isNotify) {
+        notifyItemRemoved(position)
+      }
     }
     handler.post(runnable)
   }
