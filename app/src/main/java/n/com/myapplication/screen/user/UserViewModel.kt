@@ -7,7 +7,8 @@ import androidx.lifecycle.ViewModelProvider
 import io.reactivex.Observable
 import n.com.myapplication.base.BaseViewModel
 import n.com.myapplication.data.model.User
-import n.com.myapplication.data.source.remote.api.error.BaseException
+import n.com.myapplication.data.source.remote.api.error.RetrofitException
+import n.com.myapplication.extension.notNull
 import n.com.myapplication.extension.with
 import n.com.myapplication.liveData.Resource
 import n.com.myapplication.liveData.SingleLiveEvent
@@ -27,16 +28,19 @@ class UserViewModel
   var query = MutableLiveData<String>()
   var repoList = SingleLiveEvent<Resource<MutableList<User>>>()
 
-  fun searchUser(status: Status) {
+  fun searchUser(status: Status, page: Int = Constant.PAGE_DEFAULT) {
     launchDisposable {
-      userRepository.searchRepository(query.value, Constant.PAGE_DEFAULT)
+      userRepository.searchRepository(query.value, page)
           .map { response ->
             val data = repoList.value?.data
-            if (status == Status.LOADING || status == Status.REFRESH_DATA) {
-              data?.clear()
+            data.notNull { it ->
+              if (status == Status.REFRESH_DATA) {
+                it.clear()
+              }
+              it.addAll(response)
+              return@map data
             }
-            data?.addAll(response)
-            data
+            return@map response.toMutableList()
           }
           .with(baseSchedulerProvider)
           .subscribe(
@@ -44,7 +48,7 @@ class UserViewModel
                 repoList.value = Resource.multiStatus(status, data)
               },
               { throwable ->
-                if (throwable is BaseException) {
+                if (throwable is RetrofitException) {
                   repoList.value = Resource.error(throwable)
                 }
               })
@@ -53,7 +57,7 @@ class UserViewModel
 
   fun initRxSearch(editText: EditText) {
     launchDisposable {
-      RxView.search(editText)
+      RxView.search(editText).skip(1)
           .debounce(300, TimeUnit.MILLISECONDS)
           .distinctUntilChanged()
           .switchMap { query ->
@@ -64,10 +68,11 @@ class UserViewModel
           .with(baseSchedulerProvider)
           .subscribe(
               { data ->
-                repoList.value = Resource.loadMore(data.toMutableList())
+                repoList.value = Resource.searchData(data.toMutableList())
               },
               { throwable ->
-                if (throwable is BaseException) {
+                initRxSearch(editText)
+                if (throwable is RetrofitException) {
                   repoList.value = Resource.error(throwable)
                 }
               })

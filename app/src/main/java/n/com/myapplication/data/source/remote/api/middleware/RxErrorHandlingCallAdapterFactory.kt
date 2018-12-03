@@ -2,7 +2,7 @@ package n.com.myapplication.data.source.remote.api.middleware
 
 import android.text.TextUtils
 import androidx.annotation.NonNull
-import n.com.myapplication.data.source.remote.api.error.BaseException
+import n.com.myapplication.data.source.remote.api.error.RetrofitException
 import com.ccc.jobchat.data.source.remote.api.error.ErrorResponse
 import com.google.gson.Gson
 import io.reactivex.*
@@ -93,14 +93,14 @@ class RxErrorHandlingCallAdapterFactory private constructor() : CallAdapter.Fact
       }
     }
 
-    private fun convertToBaseException(throwable: Throwable): BaseException {
-      if (throwable is BaseException) {
+    private fun convertToBaseException(throwable: Throwable): RetrofitException {
+      if (throwable is RetrofitException) {
         return throwable
       }
 
       // A network error happened
       if (throwable is IOException) {
-        return BaseException.toNetworkError(throwable)
+        return RetrofitException.toNetworkError(throwable)
       }
 
       // We had non-200 http error
@@ -112,22 +112,22 @@ class RxErrorHandlingCallAdapterFactory private constructor() : CallAdapter.Fact
                 ErrorResponse::class.java)
 
             if (errorResponse != null && !TextUtils.isEmpty(errorResponse.error.message)) {
-              BaseException.toServerError(errorResponse)
+              RetrofitException.toServerError(errorResponse)
             } else {
-              BaseException.toHttpError(response)
+              RetrofitException.toHttpError(response)
             }
 
           } catch (e: IOException) {
             LogUtils.e(TAG, e.localizedMessage)
-            BaseException.toUnexpectedError(throwable)
+            RetrofitException.toUnexpectedError(throwable)
           }
         } else {
-          return BaseException.toHttpError(response)
+          return RetrofitException.toHttpError(response)
         }
       }
 
       // We don't know what happened. We need to simply convert to an unknown error
-      return BaseException.toUnexpectedError(throwable)
+      return RetrofitException.toUnexpectedError(throwable)
     }
   }
 

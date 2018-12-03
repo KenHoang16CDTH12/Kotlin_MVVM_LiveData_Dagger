@@ -12,6 +12,6 @@ enum class Status {
   ERROR,
   LOADING,
   REFRESH_DATA,
-  LOAD_MORE
-
+  LOAD_MORE,
+  SEARCH_DATA
 }
