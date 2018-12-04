@@ -157,6 +157,10 @@ class SuperRecyclerView : FrameLayout {
     loadDataListener = listener
   }
 
+  fun onRealse() {
+
+  }
+
   interface LoadDataListener {
     fun onLoadMore(page: Int)
 

@@ -88,7 +88,7 @@ constructor(
 
   fun onClearCallBackLoadMore() {
     handler.notNull {
-      handler.removeCallbacks(runnable)
+      it.removeCallbacks(runnable)
     }
   }
 
