@@ -54,26 +54,23 @@ constructor(context: Context) : BaseRecyclerViewAdapter<T, RecyclerView.ViewHold
     if (dataList.isEmpty() || isLoadMore) return
     isLoadMore = true
 
-    runnable = Runnable {
-      val position = dataList.size
-      dataList.add(position, null as T)
-      notifyItemInserted(position)
+    handler.post {
+      dataList.add(null as T)
+      notifyItemInserted(bottomItemPosition())
     }
-    handler.post(runnable)
   }
 
-  fun onStopLoadMore(isNotify: Boolean = false) {
+  fun onStopLoadMore(newSize: Int = 0) {
     if (!isLoadMore) return
     isLoadMore = false
 
-    runnable = Runnable {
-      val position = dataList.size
-      dataList.removeAt(position - 1)
-      if (isNotify) {
-        notifyItemRemoved(position)
+    handler.post {
+      dataList.removeAt(bottomItemPosition())
+      val oldSize = dataList.size
+      if (oldSize >= newSize) {
+        notifyItemRemoved(oldSize)
       }
     }
-    handler.post(runnable)
   }
 
   class ItemLoadMoreViewHolder(
@@ -85,7 +82,7 @@ constructor(context: Context) : BaseRecyclerViewAdapter<T, RecyclerView.ViewHold
       binding.viewModel = itemViewModel
     }
 
-    internal fun bind(isLoadMore: Boolean) {
+    fun bind(isLoadMore: Boolean) {
       itemViewModel.visibleProgressBar.set(isLoadMore)
       binding.executePendingBindings()
     }

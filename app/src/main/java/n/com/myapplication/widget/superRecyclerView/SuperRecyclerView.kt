@@ -24,7 +24,8 @@ class SuperRecyclerView : FrameLayout {
   private var recyclerView: RecyclerView? = null
   private var onScrollListener: RecyclerView.OnScrollListener? = null
   private var swipeRefreshLayout: PullRefreshLayout? = null
-  private var loadMoreAdapter: LoadMoreAdapter<*>? = null
+
+  private var loadMoreAdapter: LoadMoreAdapter<*>
 
   private var isRefresh = false
   private var currentPage = Constant.PAGE_DEFAULT
@@ -64,9 +65,8 @@ class SuperRecyclerView : FrameLayout {
       val spanSize = layoutManager.spanCount
       layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
         override fun getSpanSize(position: Int): Int {
-          return if (loadMoreAdapter?.isLoadMore == true
-              && loadMoreAdapter != null
-              && position == loadMoreAdapter?.bottomItemPosition()) {
+          return if (loadMoreAdapter.isLoadMore
+              && position == loadMoreAdapter.bottomItemPosition()) {
             spanSize
           } else 1
         }
@@ -108,35 +108,27 @@ class SuperRecyclerView : FrameLayout {
   }
 
   fun startLoadMore() {
-    loadMoreAdapter.notNull { adapter ->
-      if (adapter.isLoadMore || isRefresh) {
-        return
-      }
-      currentPage++
-      adapter.onStartLoadMore()
-      loadDataListener?.onLoadMore(currentPage)
+    if (loadMoreAdapter.isLoadMore || isRefresh) {
+      return
     }
+    currentPage++
+    loadMoreAdapter.onStartLoadMore()
+    loadDataListener?.onLoadMore(currentPage)
   }
 
   fun stopLoadMore(newSize: Int = 0) {
-    loadMoreAdapter.notNull { adapter ->
-      val oldSize = adapter.itemCount
-      adapter.onStopLoadMore(isNotify = newSize <= oldSize)
-    }
+    loadMoreAdapter.onStopLoadMore(newSize = newSize)
   }
 
   fun stopAllStatusLoadData() {
-    swipeRefreshLayout?.setRefreshing(false)
+    stopRefreshData()
     stopLoadMore()
   }
 
   fun refreshAdapter(newSize: Int = 0) {
     loadMoreAdapter.notNull { adapter ->
-      adapter.isLoadMore = false
-      adapter.getData().clear()
-      if (newSize == 0) {
-        adapter.notifyDataSetChanged()
-      }
+      stopLoadMore()
+      if (newSize == 0) adapter.clearData()
       resetState()
     }
   }
@@ -170,8 +162,7 @@ class SuperRecyclerView : FrameLayout {
   override fun onDetachedFromWindow() {
     super.onDetachedFromWindow()
     loadDataListener = null
-    loadMoreAdapter?.onClearCallBackLoadMore()
-    loadMoreAdapter = null
+    loadMoreAdapter.unRegisterItemClickListener()
     swipeRefreshLayout?.setOnRefreshListener(null)
     swipeRefreshLayout = null
     recyclerView?.removeOnScrollListener(onScrollListener as EndlessRecyclerOnScrollListener)

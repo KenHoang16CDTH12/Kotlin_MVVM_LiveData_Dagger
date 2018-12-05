@@ -1,14 +1,18 @@
 package n.com.myapplication.screen.user
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_user.*
 import n.com.myapplication.R
 import n.com.myapplication.base.BaseFragment
@@ -33,8 +37,9 @@ class UserFragment : BaseFragment(), OnItemClickListener<User>, SuperRecyclerVie
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    adapter = UserAdapter(context = context!!)
-    adapter.registerItemClickListener(this)
+    adapter = UserAdapter(context = context as AppCompatActivity).apply {
+      registerItemClickListener(this@UserFragment)
+    }
   }
 
   override fun createView(inflater: LayoutInflater, container: ViewGroup?,
@@ -47,10 +52,12 @@ class UserFragment : BaseFragment(), OnItemClickListener<User>, SuperRecyclerVie
   }
 
   override fun setUpView() {
-    recyclerView.setAdapter(adapter)
-    recyclerView.setLayoutManager(LinearLayoutManager(context?.applicationContext))
-    recyclerView.setLoadDataListener(this)
-
+    recyclerView.apply {
+      setAdapter(adapter)
+      setLayoutManager(LinearLayoutManager(context?.applicationContext))
+      setLoadDataListener(this@UserFragment)
+    }
+    
     edtSearch.setOnEditorActionListener { _, actionId, _ ->
       if (actionId == EditorInfo.IME_ACTION_SEARCH) {
         viewModel.searchUser(Status.REFRESH_DATA)
@@ -124,9 +131,7 @@ class UserFragment : BaseFragment(), OnItemClickListener<User>, SuperRecyclerVie
   }
 
   private fun updateData(newData: MutableList<User>) {
-    val callBack = UserDiffCallback(adapter.getData(), newData)
-    val diffResult = DiffUtil.calculateDiff(callBack)
-    adapter.updateData(newData = newData, diffResult = diffResult)
+    adapter.updateData(newData = newData)
   }
 
   companion object {

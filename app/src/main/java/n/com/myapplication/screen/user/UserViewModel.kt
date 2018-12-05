@@ -65,10 +65,11 @@ class UserViewModel
                 .toObservable()
                 .onErrorResumeNext(Observable.empty())
           }
+          .map { response -> return@map response.toMutableList() }
           .with(baseSchedulerProvider)
           .subscribe(
               { data ->
-                repoList.value = Resource.searchData(data.toMutableList())
+                repoList.value = Resource.searchData(data)
               },
               { throwable ->
                 initRxSearch(editText)

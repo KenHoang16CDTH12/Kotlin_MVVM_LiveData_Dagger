@@ -4,12 +4,15 @@ import android.content.Context
 import android.view.ViewGroup
 import androidx.annotation.NonNull
 import androidx.databinding.DataBindingUtil
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import n.com.myapplication.R
 import n.com.myapplication.base.recyclerView.LoadMoreAdapter
 import n.com.myapplication.base.recyclerView.OnItemClickListener
+import n.com.myapplication.base.recyclerView.diffCallback.UserDiffCallback
 import n.com.myapplication.data.model.User
 import n.com.myapplication.databinding.ItemUserBinding
+import n.com.myapplication.extension.notNull
 
 class UserAdapter(context: Context) : LoadMoreAdapter<User>(context) {
 
@@ -43,6 +46,17 @@ class UserAdapter(context: Context) : LoadMoreAdapter<User>(context) {
       itemViewModel.position = position
       itemViewModel.setData(user)
       binding.executePendingBindings()
+    }
+  }
+
+  fun updateData(newData: MutableList<User>?) {
+    handler.post {
+      newData.notNull { it ->
+        val callBack = UserDiffCallback(dataList, it)
+        val diffResult = DiffUtil.calculateDiff(callBack)
+        diffResult.dispatchUpdatesTo(this)
+        dataList = it
+      }
     }
   }
 }

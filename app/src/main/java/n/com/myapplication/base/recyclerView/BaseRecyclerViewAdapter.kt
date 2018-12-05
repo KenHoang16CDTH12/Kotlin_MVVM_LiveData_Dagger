@@ -2,8 +2,8 @@ package n.com.myapplication.base.recyclerView
 
 import android.content.Context
 import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import n.com.myapplication.extension.notNull
 
@@ -22,8 +22,7 @@ constructor(
 
   protected var itemClickListener: OnItemClickListener<T>? = null
 
-  protected var handler = Handler()
-  protected lateinit var runnable: Runnable
+  protected var handler = Handler(Looper.getMainLooper())
 
   override fun getItemCount(): Int {
     return dataList.size
@@ -31,17 +30,6 @@ constructor(
 
   fun getData(): MutableList<T> {
     return dataList
-  }
-
-  fun updateData(newData: MutableList<T>?, diffResult: DiffUtil.DiffResult) {
-    runnable = Runnable {
-      newData.notNull { it ->
-        diffResult.dispatchUpdatesTo(this)
-        dataList.clear()
-        dataList.addAll(it)
-      }
-    }
-    handler.post(runnable)
   }
 
   fun clearData() {
@@ -84,12 +72,6 @@ constructor(
 
   fun unRegisterItemClickListener() {
     itemClickListener = null
-  }
-
-  fun onClearCallBackLoadMore() {
-    handler.notNull {
-      it.removeCallbacks(runnable)
-    }
   }
 
 }
