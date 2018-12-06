@@ -54,26 +54,25 @@ constructor(context: Context) : BaseRecyclerViewAdapter<T, RecyclerView.ViewHold
     if (dataList.isEmpty() || isLoadMore) return
     isLoadMore = true
 
-    runnable = Runnable {
-      val position = dataList.size
-      dataList.add(position, null as T)
-      notifyItemInserted(position)
+    dataList.add(null as T)
+    notifyItemInserted(bottomItemPosition())
+
+    handler.post {
+
     }
-    handler.post(runnable)
   }
 
-  fun onStopLoadMore(isNotify: Boolean = false) {
+  fun onStopLoadMore(newSize: Int = 0) {
     if (!isLoadMore) return
     isLoadMore = false
 
-    runnable = Runnable {
-      val position = dataList.size
-      dataList.removeAt(position - 1)
-      if (isNotify) {
-        notifyItemRemoved(position)
+    handler.post {
+      dataList.removeAt(bottomItemPosition())
+      val oldSize = dataList.size
+      if (oldSize >= newSize) {
+        notifyItemRemoved(oldSize)
       }
     }
-    handler.post(runnable)
   }
 
   class ItemLoadMoreViewHolder(
