@@ -15,63 +15,79 @@
  */
 package n.com.myapplication.extension
 
-import android.app.Activity
 import android.content.Intent
 import androidx.annotation.IdRes
 import androidx.annotation.NonNull
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import n.com.myapplication.R
 
 /**
  * Various extension functions for AppCompatActivity.
  */
 
 
-const val ADD_EDIT_RESULT_OK = Activity.RESULT_FIRST_USER + 1
-const val DELETE_RESULT_OK = Activity.RESULT_FIRST_USER + 2
-const val EDIT_RESULT_OK = Activity.RESULT_FIRST_USER + 3
-
 fun AppCompatActivity.replaceFragmentInActivity(@IdRes containerId: Int, fragment: Fragment,
-    addToBackStack: Boolean = false, tag: String = fragment::class.java.simpleName) {
+    addToBackStack: Boolean = true, tag: String = fragment::class.java.simpleName) {
   supportFragmentManager.transact {
     if (addToBackStack) {
       addToBackStack(tag)
     }
     replace(containerId, fragment, tag)
   }
+}
 
-  fun AppCompatActivity.addFragmentToActivity(@IdRes containerId: Int, fragment: Fragment,
-      addToBackStack: Boolean = false, tag: String = fragment::class.java.simpleName) {
-    supportFragmentManager.transact {
+fun AppCompatActivity.addFragmentToActivity(@IdRes containerId: Int, fragment: Fragment,
+    addToBackStack: Boolean = true, tag: String = fragment::class.java.simpleName) {
+  supportFragmentManager.transact {
+    if (addToBackStack) {
+      addToBackStack(tag)
+    }
+    add(containerId, fragment, tag)
+  }
+}
+
+fun AppCompatActivity.goBackFragment(): Boolean {
+  val isShowPreviousPage = supportFragmentManager.backStackEntryCount > 0
+  if (isShowPreviousPage) {
+    supportFragmentManager.popBackStackImmediate()
+  }
+  return isShowPreviousPage
+}
+
+fun AppCompatActivity.startActivity(@NonNull intent: Intent,
+    flags: Int? = null) {
+  flags.notNull {
+    intent.flags = it
+  }
+  startActivity(intent)
+}
+
+fun AppCompatActivity.startActivityForResult(@NonNull intent: Intent,
+    requestCode: Int, flags: Int? = null) {
+  flags.notNull {
+    intent.flags = it
+  }
+  startActivityForResult(intent, requestCode)
+}
+
+fun AppCompatActivity.isExistFragment(fragment: Fragment): Boolean {
+  return supportFragmentManager.findFragmentByTag(fragment::class.java.simpleName) != null
+}
+
+fun AppCompatActivity.switchFragment(@IdRes containerId: Int, currentFragment: Fragment,
+    newFragment: Fragment, addToBackStack: Boolean = true,
+    tag: String = newFragment::class.java.simpleName) {
+  supportFragmentManager.transact {
+    setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out)
+    if (isExistFragment(newFragment)) {
+      hide(currentFragment).show(newFragment)
+    } else {
+      hide(currentFragment)
       if (addToBackStack) {
         addToBackStack(tag)
       }
-      add(fragment, tag)
+      add(containerId, newFragment, tag)
     }
   }
-
-  fun AppCompatActivity.goBackFragment(): Boolean {
-    val isShowPreviousPage = supportFragmentManager.backStackEntryCount > 0
-    if (isShowPreviousPage) {
-      supportFragmentManager.popBackStackImmediate()
-    }
-    return isShowPreviousPage
-  }
-
-  fun AppCompatActivity.startActivity(@NonNull intent: Intent,
-      flags: Int? = null) {
-    flags.notNull {
-      intent.flags = it
-    }
-    startActivity(intent)
-  }
-
-  fun AppCompatActivity.startActivityForResult(@NonNull intent: Intent,
-      requestCode: Int, flags: Int? = null) {
-    flags.notNull {
-      intent.flags = it
-    }
-    startActivityForResult(intent, requestCode)
-  }
-
 }
