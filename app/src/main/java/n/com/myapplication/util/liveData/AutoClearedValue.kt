@@ -2,7 +2,7 @@
  * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * you may not use this file except in compliance withScheduler the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package n.com.myapplication.liveData
+package n.com.myapplication.util.liveData
 
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -29,29 +29,29 @@ import kotlin.reflect.KProperty
  * Accessing this variable in a destroyed fragment will throw NPE.
  */
 class AutoClearedValue<T : Any>(val fragment: Fragment) : ReadWriteProperty<Fragment, T> {
-  private var _value: T? = null
+    private var _value: T? = null
 
-  init {
-    fragment.lifecycle.addObserver(object : LifecycleObserver {
-      @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-      fun onDestroy() {
-        _value = null
-      }
-    })
-  }
+    init {
+        fragment.lifecycle.addObserver(object : LifecycleObserver {
+            @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+            fun onDestroy() {
+                _value = null
+            }
+        })
+    }
 
-  override fun getValue(thisRef: Fragment, property: KProperty<*>): T {
-    return _value ?: throw IllegalStateException(
-        "should never call auto-cleared-value get when it might not be available"
-    )
-  }
+    override fun getValue(thisRef: Fragment, property: KProperty<*>): T {
+        return _value ?: throw IllegalStateException(
+                "should never call auto-cleared-value get when it might not be available"
+        )
+    }
 
-  override fun setValue(thisRef: Fragment, property: KProperty<*>, value: T) {
-    _value = value
-  }
+    override fun setValue(thisRef: Fragment, property: KProperty<*>, value: T) {
+        _value = value
+    }
 }
 
 /**
- * Creates an [AutoClearedValue] associated with this fragment.
+ * Creates an [AutoClearedValue] associated withScheduler this fragment.
  */
 fun <T : Any> Fragment.autoCleared() = AutoClearedValue<T>(this)

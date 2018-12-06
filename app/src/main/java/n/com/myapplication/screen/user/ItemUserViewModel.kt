@@ -6,7 +6,7 @@ import androidx.databinding.Bindable
 import androidx.databinding.library.baseAdapters.BR
 import n.com.myapplication.base.recyclerView.OnItemClickListener
 import n.com.myapplication.data.model.User
-import n.com.myapplication.extension.notNull
+import n.com.myapplication.util.extension.notNull
 import n.com.myapplication.util.Constant.POSITION_DEFAULT
 
 class ItemUserViewModel(

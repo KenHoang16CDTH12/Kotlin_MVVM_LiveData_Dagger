@@ -13,7 +13,7 @@ import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.google.android.material.tabs.TabLayout
-import n.com.myapplication.extension.notNull
+import n.com.myapplication.util.extension.notNull
 
 object BindingUtils {
 

@@ -17,7 +17,7 @@ object Type {
   const val HTTP = "HTTP"
 
   /**
-   * A error server with code & message
+   * A error server withScheduler code & message
    */
   const val SERVER = "SERVER"
 

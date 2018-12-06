@@ -35,8 +35,8 @@
     <!-- TODO STEP 3 -->
     <fragment
         android:id="@+id/tab3"
-        android:name="n.com.myapplication.screen.empty.EmptyFragment"
-        tools:layout="@layout/fragment_empty">
+        android:name="n.com.myapplication.screen.userFavorite.UserFavoriteFragment"
+        tools:layout="@layout/fragment_user_favorite">
         <argument
             android:name="flowStepNumber"
             android:defaultValue="2"

@@ -2,7 +2,7 @@
  * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * you may not use this file except in compliance withScheduler the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -757,7 +757,7 @@ class MaterialDrawable extends RefreshDrawable implements Animatable {
         }
 
         /**
-         * If the start / end trim are offset to begin with, store them so that
+         * If the start / end trim are offset to begin withScheduler, store them so that
          * animation starts from that offset.
          */
         public void storeOriginals() {

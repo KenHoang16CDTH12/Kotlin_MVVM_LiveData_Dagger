@@ -9,41 +9,48 @@ import androidx.annotation.NonNull
 import androidx.annotation.Nullable
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import n.com.myapplication.data.source.remote.api.error.RetrofitException
 import n.com.myapplication.di.Injectable
 import n.com.myapplication.widget.DialogManager.DialogManager
 import n.com.myapplication.widget.DialogManager.DialogManagerImpl
 import javax.inject.Inject
 
 abstract class BaseFragment : Fragment(), Injectable {
-  @Inject
-  lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
 
-  var dialogManager: DialogManager? = null
+    var dialogManager: DialogManager? = null
 
-  override fun onAttach(context: Context?) {
-    super.onAttach(context)
-    dialogManager = if (activity is BaseActivity) {
-      (activity as BaseActivity).dialogManager
-    } else {
-      DialogManagerImpl(getContext())
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+        dialogManager = if (activity is BaseActivity) {
+            (activity as BaseActivity).dialogManager
+        } else {
+            DialogManagerImpl(getContext())
+        }
     }
-  }
 
-  override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-      savedInstanceState: Bundle?): View? {
-    return createView(inflater, container, savedInstanceState)
-  }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?): View? {
+        return createView(inflater, container, savedInstanceState)
+    }
 
-  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    super.onViewCreated(view, savedInstanceState)
-    setUpView()
-    bindView()
-  }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setUpView()
+        bindView()
+    }
 
-  protected abstract fun createView(@NonNull inflater: LayoutInflater,
-      @Nullable container: ViewGroup?, @Nullable savedInstanceState: Bundle?): View
+    fun onHandleError(error: RetrofitException?) {
+        if (context is BaseActivity) {
+            (context as BaseActivity).onHandleError(error)
+        }
+    }
 
-  protected abstract fun setUpView()
+    protected abstract fun createView(@NonNull inflater: LayoutInflater,
+            @Nullable container: ViewGroup?, @Nullable savedInstanceState: Bundle?): View
 
-  protected abstract fun bindView()
+    protected abstract fun setUpView()
+
+    protected abstract fun bindView()
 }
