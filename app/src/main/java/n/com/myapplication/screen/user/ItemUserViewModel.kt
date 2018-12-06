@@ -9,7 +9,7 @@ import n.com.myapplication.data.model.User
 import n.com.myapplication.extension.notNull
 import n.com.myapplication.util.Constant.POSITION_DEFAULT
 
-data class ItemUserViewModel(
+class ItemUserViewModel(
     val itemClickListener: OnItemClickListener<User>? = null,
     var position: Int = POSITION_DEFAULT) : BaseObservable() {
 
