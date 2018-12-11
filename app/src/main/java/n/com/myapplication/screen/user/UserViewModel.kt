@@ -14,8 +14,8 @@ import n.com.myapplication.util.extension.withScheduler
 import n.com.myapplication.util.liveData.Resource
 import n.com.myapplication.util.liveData.SingleLiveEvent
 import n.com.myapplication.util.liveData.Status
-import n.com.myapplication.repositories.AppDBRepository
-import n.com.myapplication.repositories.UserRepository
+import n.com.myapplication.data.source.repositories.AppDBRepository
+import n.com.myapplication.data.source.repositories.UserRepository
 import n.com.myapplication.util.rxAndroid.BaseSchedulerProvider
 import n.com.myapplication.util.Constant
 import n.com.myapplication.util.RxView

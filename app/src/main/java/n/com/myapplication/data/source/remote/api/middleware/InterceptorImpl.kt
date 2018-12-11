@@ -2,7 +2,7 @@ package n.com.myapplication.data.source.remote.api.middleware
 
 import androidx.annotation.NonNull
 import n.com.myapplication.util.extension.notNull
-import n.com.myapplication.repositories.TokenRepository
+import n.com.myapplication.data.source.repositories.TokenRepository
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response

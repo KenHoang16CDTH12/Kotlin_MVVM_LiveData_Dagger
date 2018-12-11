@@ -8,7 +8,7 @@ import n.com.myapplication.base.BaseViewModel
 import n.com.myapplication.data.model.User
 import n.com.myapplication.util.liveData.Resource
 import n.com.myapplication.util.liveData.Status
-import n.com.myapplication.repositories.AppDBRepository
+import n.com.myapplication.data.source.repositories.AppDBRepository
 import javax.inject.Inject
 
 class UserFavoriteViewModel
