@@ -1,4 +1,4 @@
-package n.com.myapplication.repositories
+package n.com.myapplication.data.source.repositories
 
 import com.ccc.jobchat.data.model.Token
 import n.com.myapplication.data.source.local.sharedprf.SharedPrefsApi

@@ -1,4 +1,4 @@
-package n.com.myapplication.repositories
+package n.com.myapplication.data.source.repositories
 
 import com.google.gson.Gson
 import io.reactivex.Single

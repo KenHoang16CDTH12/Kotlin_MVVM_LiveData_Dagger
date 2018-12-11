@@ -1,12 +1,14 @@
-package n.com.myapplication.di
+package n.com.myapplication.di.component
 
 import android.app.Application
 import dagger.BindsInstance
 import dagger.Component
 import dagger.android.AndroidInjectionModule
 import n.com.myapplication.MainApplication
-import n.com.myapplication.data.source.RepositoryModule
-import n.com.myapplication.data.source.remote.service.NetWorkModule
+import n.com.myapplication.di.module.ActivityBuildersModule
+import n.com.myapplication.di.module.RepositoryModule
+import n.com.myapplication.di.module.NetWorkModule
+import n.com.myapplication.di.module.AppModule
 import javax.inject.Singleton
 
 @Singleton
