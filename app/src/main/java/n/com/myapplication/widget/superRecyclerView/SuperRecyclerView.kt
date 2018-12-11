@@ -14,165 +14,174 @@ import androidx.recyclerview.widget.SimpleItemAnimator
 import n.com.myapplication.R
 import n.com.myapplication.base.recyclerView.EndlessRecyclerOnScrollListener
 import n.com.myapplication.base.recyclerView.LoadMoreAdapter
-import n.com.myapplication.extension.notNull
 import n.com.myapplication.util.Constant
 import n.com.myapplication.util.LogUtils
 import n.com.myapplication.widget.pullToRefresh.PullRefreshLayout
 
 class SuperRecyclerView : FrameLayout {
 
-  private var recyclerView: RecyclerView? = null
-  private var onScrollListener: RecyclerView.OnScrollListener? = null
-  private var swipeRefreshLayout: PullRefreshLayout? = null
+    private var recyclerView: RecyclerView? = null
+    private var onScrollListener: RecyclerView.OnScrollListener? = null
+    private var swipeRefreshLayout: PullRefreshLayout? = null
 
-  private lateinit var loadMoreAdapter: LoadMoreAdapter<*>
+    private lateinit var loadMoreAdapter: LoadMoreAdapter<*>
 
-  private var isRefresh = false
-  private var currentPage = Constant.PAGE_DEFAULT
+    private var isRefresh = false
+    private var currentPage = Constant.PAGE_DEFAULT
 
-  private var loadDataListener: LoadDataListener? = null
+    private var loadDataListener: LoadDataListener? = null
 
-  constructor(@NonNull context: Context) : super(context) {
-    initView()
-  }
+    var isAllowStatus = true
 
-  constructor(@NonNull context: Context, @Nullable attrs: AttributeSet) : super(context, attrs) {
-    initView()
-  }
+    constructor(@NonNull context: Context) : super(context) {
+        initView()
+    }
 
-  constructor(@NonNull context: Context, @Nullable attrs: AttributeSet,
-      defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
-    initView()
-  }
+    constructor(@NonNull context: Context, @Nullable attrs: AttributeSet) : super(context, attrs) {
+        initView()
+    }
 
-  private fun initView() {
-    val view = LayoutInflater.from(context).inflate(R.layout.super_recyclerview, this, false)
-    recyclerView = view.findViewById(R.id.super_recyclerView)
-    recyclerView?.hasFixedSize()
-    recyclerView?.itemAnimator = DefaultItemAnimator()
-    swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout)
-    swipeRefreshLayout?.setColorSchemeColors(*colorForSmart)
-    addView(view)
-  }
+    constructor(@NonNull context: Context, @Nullable attrs: AttributeSet,
+            defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
+        initView()
+    }
 
-  fun setAdapter(adapter: RecyclerView.Adapter<*>) {
-    loadMoreAdapter = adapter as LoadMoreAdapter<*>
-    recyclerView?.adapter = adapter
-  }
+    private fun initView() {
+        val view = LayoutInflater.from(context).inflate(R.layout.super_recyclerview, this, false)
+        recyclerView = view.findViewById(R.id.super_recyclerView)
+        recyclerView?.hasFixedSize()
+        recyclerView?.itemAnimator = DefaultItemAnimator()
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout)
+        swipeRefreshLayout?.setColorSchemeColors(*colorForSmart)
+        addView(view)
+    }
 
-  fun setLayoutManager(layoutManager: RecyclerView.LayoutManager) {
-    if (layoutManager is GridLayoutManager) {
-      val spanSize = layoutManager.spanCount
-      layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
-        override fun getSpanSize(position: Int): Int {
-          return if (loadMoreAdapter.isLoadMore
-              && position == loadMoreAdapter?.bottomItemPosition()) {
-            spanSize
-          } else 1
+    fun setAdapter(adapter: RecyclerView.Adapter<*>) {
+        loadMoreAdapter = adapter as LoadMoreAdapter<*>
+        recyclerView?.adapter = adapter
+    }
+
+    fun setLayoutManager(layoutManager: RecyclerView.LayoutManager) {
+        if (layoutManager is GridLayoutManager) {
+            val spanSize = layoutManager.spanCount
+            layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+                override fun getSpanSize(position: Int): Int {
+                    return if (loadMoreAdapter.isLoadMore
+                            && position == loadMoreAdapter?.bottomItemPosition()) {
+                        spanSize
+                    } else 1
+                }
+            }
         }
-      }
+        recyclerView?.layoutManager = layoutManager
+
+        onScrollListener = object : EndlessRecyclerOnScrollListener(layoutManager) {
+            override fun onLoadMore(currentPage: Int) {
+                if (!isAllowStatus) {
+                    return
+                }
+                startLoadMore()
+            }
+        }
+        recyclerView?.addOnScrollListener(onScrollListener as EndlessRecyclerOnScrollListener)
+
+        swipeRefreshLayout?.setOnRefreshListener {
+            if (!isAllowStatus) {
+                return@setOnRefreshListener
+            }
+            this.startRefreshData()
+        }
     }
-    recyclerView?.layoutManager = layoutManager
 
-    onScrollListener = object : EndlessRecyclerOnScrollListener(layoutManager) {
-      override fun onLoadMore(currentPage: Int) {
-        startLoadMore()
-      }
+
+    fun setHasFixedSize(isFixed: Boolean) {
+        recyclerView?.setHasFixedSize(isFixed)
     }
-    recyclerView?.addOnScrollListener(onScrollListener as EndlessRecyclerOnScrollListener)
 
-    swipeRefreshLayout?.setOnRefreshListener { this.startRefreshData() }
-  }
-
-
-  fun setHasFixedSize(isFixed: Boolean) {
-    recyclerView?.setHasFixedSize(isFixed)
-  }
-
-  fun setEnableSwipe(isEnable: Boolean) {
-    swipeRefreshLayout?.isEnabled = isEnable
-  }
-
-  fun startRefreshData() {
-    if(isRefresh) return
-
-    isRefresh = true
-    currentPage = Constant.PAGE_DEFAULT
-
-    swipeRefreshLayout?.setRefreshing(true)
-    loadDataListener?.onRefreshData()
-  }
-
-  fun stopRefreshData() {
-    if (!isRefresh) return
-    isRefresh = false
-    swipeRefreshLayout?.setRefreshing(false)
-  }
-
-  fun startLoadMore() {
-    if (loadMoreAdapter.isLoadMore || isRefresh) {
-      return
+    fun setEnableSwipe(isEnable: Boolean) {
+        swipeRefreshLayout?.isEnabled = isEnable
     }
-    currentPage++
-    loadMoreAdapter.onStartLoadMore()
-    loadDataListener?.onLoadMore(currentPage)
-  }
 
-  fun stopLoadMore(newSize: Int = 0) {
-    loadMoreAdapter.onStopLoadMore(newSize)
-  }
+    fun startRefreshData() {
+        if (isRefresh) return
 
-  fun stopAllStatusLoadData() {
-    stopRefreshData()
-    stopLoadMore()
-  }
+        isRefresh = true
+        currentPage = Constant.PAGE_DEFAULT
 
-  fun refreshAdapter(newSize: Int = 0) {
-    loadMoreAdapter.isLoadMore = false
-    if (newSize == 0) loadMoreAdapter.clearData()
-    resetState()
-  }
+        swipeRefreshLayout?.setRefreshing(true)
+        loadDataListener?.onRefreshData()
+    }
 
-  fun disableAnimateRecyclerView() {
-    (recyclerView?.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
-  }
+    fun stopRefreshData() {
+        if (!isRefresh) return
+        isRefresh = false
+        swipeRefreshLayout?.setRefreshing(false)
+    }
 
-  fun enableAnimateRecyclerView() {
-    (recyclerView?.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = true
-  }
+    fun startLoadMore() {
+        if (loadMoreAdapter.isLoadMore || isRefresh) {
+            return
+        }
+        currentPage++
+        loadMoreAdapter.onStartLoadMore()
+        loadDataListener?.onLoadMore(currentPage)
+    }
 
-  fun resetState() {
-    (onScrollListener as EndlessRecyclerOnScrollListener).reset()
-  }
+    fun stopLoadMore() {
+        loadMoreAdapter.onStopLoadMore()
+    }
 
-  fun setLoadDataListener(listener: LoadDataListener) {
-    loadDataListener = listener
-  }
+    fun stopAllStatusLoadData() {
+        stopRefreshData()
+        stopLoadMore()
+    }
 
-  interface LoadDataListener {
-    fun onLoadMore(page: Int)
+    fun refreshAdapter(newSize: Int = 0) {
+        loadMoreAdapter.isLoadMore = false
+        if (newSize == 0) loadMoreAdapter.clearData()
+        resetState()
+    }
 
-    fun onRefreshData()
-  }
+    fun disableAnimateRecyclerView() {
+        (recyclerView?.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
+    }
 
-  override fun onDetachedFromWindow() {
-    super.onDetachedFromWindow()
-    loadDataListener = null
-    swipeRefreshLayout?.setOnRefreshListener(null)
-    swipeRefreshLayout = null
-    recyclerView?.removeOnScrollListener(onScrollListener as EndlessRecyclerOnScrollListener)
-    recyclerView = null
-    LogUtils.d(TAG, Constant.RELEASED)
-  }
+    fun enableAnimateRecyclerView() {
+        (recyclerView?.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = true
+    }
 
-  companion object {
+    fun resetState() {
+        (onScrollListener as EndlessRecyclerOnScrollListener).reset()
+    }
 
-    private val TAG = SuperRecyclerView::class.java.simpleName
+    fun setLoadDataListener(listener: LoadDataListener) {
+        loadDataListener = listener
+    }
 
-    val colorForSmart = intArrayOf(Color.rgb(30, 186, 177), Color.rgb(0xF7, 0xD2, 0x3E),
-        Color.rgb(0xF7, 0xD2, 0x3E), Color.rgb(0x34, 0xA3, 0x50))
+    interface LoadDataListener {
+        fun onLoadMore(page: Int)
 
-    val colorForRing = intArrayOf(Color.rgb(0xF7, 0xD2, 0x3E), Color.rgb(0xF7, 0xD2, 0x3E),
-        Color.rgb(30, 186, 177), Color.rgb(0x34, 0xA3, 0x50))
-  }
+        fun onRefreshData()
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        loadDataListener = null
+        swipeRefreshLayout?.setOnRefreshListener(null)
+        swipeRefreshLayout = null
+        recyclerView?.removeOnScrollListener(onScrollListener as EndlessRecyclerOnScrollListener)
+        recyclerView = null
+        LogUtils.d(TAG, Constant.RELEASED)
+    }
+
+    companion object {
+
+        private val TAG = SuperRecyclerView::class.java.simpleName
+
+        val colorForSmart = intArrayOf(Color.rgb(30, 186, 177), Color.rgb(0xF7, 0xD2, 0x3E),
+                Color.rgb(0xF7, 0xD2, 0x3E), Color.rgb(0x34, 0xA3, 0x50))
+
+        val colorForRing = intArrayOf(Color.rgb(0xF7, 0xD2, 0x3E), Color.rgb(0xF7, 0xD2, 0x3E),
+                Color.rgb(30, 186, 177), Color.rgb(0x34, 0xA3, 0x50))
+    }
 }

@@ -4,8 +4,10 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.google.gson.Gson
+import javax.inject.Inject
 
-class SharedPrefsImpl(context: Context) : SharedPrefsApi {
+
+class SharedPrefsImpl @Inject constructor(context: Context) : SharedPrefsApi {
 
   private var sharedPreferences: SharedPreferences =
       context.getSharedPreferences(SharedPrefsKey.PREF_NAME, Context.MODE_PRIVATE)

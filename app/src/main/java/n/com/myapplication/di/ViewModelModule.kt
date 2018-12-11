@@ -8,6 +8,7 @@ import dagger.Module
 import dagger.multibindings.IntoMap
 import n.com.myapplication.screen.main.MainActivityViewModel
 import n.com.myapplication.screen.user.UserViewModel
+import n.com.myapplication.screen.userFavorite.UserFavoriteViewModel
 
 @Suppress("unused")
 @Module
@@ -22,6 +23,11 @@ abstract class ViewModelModule {
   @IntoMap
   @ViewModelKey(UserViewModel::class)
   abstract fun bindUserViewModel(userViewModel: UserViewModel): ViewModel
+
+  @Binds
+  @IntoMap
+  @ViewModelKey(UserFavoriteViewModel::class)
+  abstract fun bindUserFavoriteViewModel(userFavoriteViewModel: UserFavoriteViewModel): ViewModel
 
   @Binds
   abstract fun bindViewModelFactory(factory: AppViewModelFactory): ViewModelProvider.Factory

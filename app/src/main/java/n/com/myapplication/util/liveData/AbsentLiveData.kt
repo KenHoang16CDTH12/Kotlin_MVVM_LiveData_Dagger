@@ -2,7 +2,7 @@
  * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * you may not use this file except in compliance withScheduler the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package n.com.myapplication.liveData
+package n.com.myapplication.util.liveData
 
 import androidx.lifecycle.LiveData
 
@@ -23,14 +23,14 @@ import androidx.lifecycle.LiveData
  * A LiveData class that has `null` value.
  */
 class AbsentLiveData<T : Any?> private constructor() : LiveData<T>() {
-  init {
-    // use post instead of set since this can be created on any thread
-    postValue(null)
-  }
-
-  companion object {
-    fun <T> create(): LiveData<T> {
-      return AbsentLiveData()
+    init {
+        // use post instead of set since this can be created on any thread
+        postValue(null)
     }
-  }
+
+    companion object {
+        fun <T> create(): LiveData<T> {
+            return AbsentLiveData()
+        }
+    }
 }
